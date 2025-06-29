@@ -2,7 +2,10 @@
 - import_tasks: include-vars.yml
 
 - import_tasks: setup-RedHat.yml
-  when: ansible_os_family == 'RedHat'
+  when: 
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != "Amazon"
+    - ansible_distribution_version != "2023"
 
 - import_tasks: install-with-package.yml
   when: certbot_install_method == 'package'
@@ -37,5 +40,5 @@
   loop_control:
     loop_var: cert_item
 
-- import_tasks: renew-cron.yml
+- import_tasks: auto-renew.yml
   when: certbot_auto_renew

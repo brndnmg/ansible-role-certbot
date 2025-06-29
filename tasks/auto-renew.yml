@@ -1,0 +1,35 @@
+---
+- name: Check if crontab executable exists
+  stat:
+    path: /usr/bin/crontab
+  register: crontab_stat
+
+- name: Print all available facts
+  ansible.builtin.debug:
+    var: crontab_stat 
+
+
+- name: Add cron job for certbot renewal (if configured).
+  cron:
+    name: Certbot automatic renewal.
+    job: "{{ certbot_script }} renew {{ certbot_auto_renew_options }}"
+    minute: "{{ certbot_auto_renew_minute }}"
+    hour: "{{ certbot_auto_renew_hour }}"
+    user: "{{ certbot_auto_renew_user }}"
+  when: 
+    - crontab_stat.stat.exists | default(false)
+    - crontab_stat.stat.executable | default(false)
+
+- name: Reload systemd daemon.
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when:
+    - not crontab_stat.stat.exists
+
+- name: Restart and enable  certbot-renew.timer.
+  ansible.builtin.systemd:
+    name:  certbot-renew.timer
+    state: restarted
+    enabled: true
+  when:
+    - not crontab_stat.stat.exists
