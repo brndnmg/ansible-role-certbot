@@ -31,7 +31,10 @@ certbot_certs: []
 #     - example3.com
 
 certbot_create_command: >-
-  {{ certbot_script }} certonly --{{ certbot_create_method  }}
+  {{ certbot_script }} certonly 
+  {% if certbot_create_method in ['standalone', 'webroot'] %}
+  --{{ certbot_create_method }}
+  {% endif %}
   {{ '--hsts' if certbot_hsts else '' }}
   {{ '--test-cert' if certbot_testmode else '' }}
   --noninteractive --agree-tos
